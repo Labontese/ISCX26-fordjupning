@@ -1,3 +1,6 @@
 # Skalskript måste ha LF, annars tolkar bash \r som en del av kommandot.
 *.sh text eol=lf
 *.pub text eol=lf
+# cloud-init-filerna laddas upp till Linux som de är.
+*.yaml text eol=lf
+*.tftpl text eol=lf

@@ -9,8 +9,8 @@
 # Körs som root på servern. Skriptet tål att köras flera gånger: det som
 # redan finns skapas inte igen, men ägare och rättigheter sätts om varje gång.
 #
-#   scp -r skript/linux daniel@10.10.70.117:/tmp/
-#   ssh daniel@10.10.70.117 "sudo bash /tmp/linux/01-konfigurera.sh"
+#   scp -r skript/linux daniel@10.10.70.120:/tmp/
+#   ssh daniel@10.10.70.120 "sudo bash /tmp/linux/01-konfigurera.sh"
 #
 # De publika nycklarna ligger i nycklar/ bredvid skriptet. En annan tekniker
 # byter ut dem mot sina egna testnycklar.

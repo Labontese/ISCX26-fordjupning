@@ -6,7 +6,9 @@ gateway/router och DNS-uppslagning, ända fram till en målserver i
 molnet/internet", och visa hur MAC, IP och port "ändras eller används på
 respektive skikt i TCP/IP-modellen".
 
-Klienten är Linuxservern iscx26-vg-linux (VM 321). Målet är example.com,
+Klienten är Linuxservern iscx26-vg-linux (VM 321). Mätningarna gjordes när
+den hade adressen 10.10.70.117. Maskinen har sedan byggts om vid
+återställningsprovet och har nu 10.10.70.120, men flödet är detsamma. Målet är example.com,
 en domän som är reserverad för exempel och dokumentation (RFC 2606). Alla
 utskrifter kommer från kommandon som kördes på klienten den 30 september
 2026. Min publika adress är maskad.
@@ -201,7 +203,10 @@ $ curl -4 -s https://ifconfig.me
 
 10.10.70.117 är en privat adress (RFC 1918). Den används bara inom lokala nät
 och routas inte på internet. För att klienten ska kunna nå internet byter
-pfSense ut avsändaradressen mot sin egen publika adress, 155.4.x.x.
+pfSense ut avsändaradressen mot sin egen publika adress, 155.4.x.x. Att det
+är pfSenses egen adress syns i pfSense under Status, Interfaces, där
+WAN-gränssnittet har samma adress som ifconfig.me visar. Det finns alltså
+ingen ytterligare NAT hos internetleverantören.
 Webbservern ser därför bara pfSense och vet inte att det finns en klient
 bakom.
 

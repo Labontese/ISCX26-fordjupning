@@ -16,7 +16,7 @@
 # ============================================================================
 set -uo pipefail   # inte -e: ett misslyckat test ska inte stoppa resten
 
-VARD="${1:-10.10.70.117}"
+VARD="${1:-10.10.70.120}"
 PROJEKT=/srv/Projekt
 FEL=0
 

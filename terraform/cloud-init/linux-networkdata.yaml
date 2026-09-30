@@ -5,5 +5,10 @@ ethernets:
   # dyka upp, och då skrivs ingen nätverkskonfiguration alls.
   #
   # Driftnätet, VLAN 70. Adress, gateway och DNS kommer från DHCP.
+  #
+  # dhcp-identifier: mac gör att klienten känns igen på MAC-adressen, som är
+  # fast i Terraform. Standard är ett id som räknas fram ur machine-id, och
+  # det blir nytt varje gång maskinen byggs om. Då ger DHCP en ny adress.
   ens18:
     dhcp4: true
+    dhcp-identifier: mac
