@@ -62,7 +62,7 @@ kursen beskriver. Så här fördelades arbetet:
 | Skrev resonemangen i förklaringarna | Faktagranskade dem mot mätningarna och källorna och påpekade fel |
 | Granskade och körde skripten och gjorde det första återställningsprovet enligt instruktionen | Skrev utkast till skripten, instruktionen och referensen |
 | Hämtade länkarna till källorna | Föreslog källor och kontrollerade att länkarna fungerar och säger det som påstås |
-| | Körde också kommandon i labbmiljön: `terraform apply`, testskripten, ett test av sökvägskontroll i båda systemen och de två sista ombyggnaderna av Linuxservern |
+| Kontrollerade resultaten av det som kördes | Körde också kommandon i labbmiljön: `terraform apply`, testskripten, ett test av sökvägskontroll i båda systemen och de två sista ombyggnaderna av Linuxservern |
 
 Alla påståenden i rapporten är kontrollerade mot en mätning i labbmiljön
 eller en primärkälla (man-sida, RFC eller Microsoft Learn).

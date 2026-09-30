@@ -187,6 +187,10 @@ sudo useradd -m -s /bin/bash carol
 sudo usermod -aG g_ledare carol
 ```
 
+carol loggar in med nyckel, som alice och bob. Lägg hennes publika nyckel i
+`/home/carol/.ssh/authorized_keys` med samma rättigheter som i
+`01-konfigurera.sh`: 700 på mappen, 600 på filen och carol som ägare.
+
 Windows, som Administrator på 322:
 
 ```powershell

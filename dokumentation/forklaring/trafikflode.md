@@ -44,7 +44,7 @@ sequenceDiagram
     Note over K,W: Transportskiktet: TCP-handskakning
     K->>G: SYN, IP till 104.20.23.154, TCP 37402 till 443
     Note over G: NAT: avsändare 10.10.70.117 blir 155.4.x.x
-    G->>W: SYN via 9 routrar, ny MAC vid varje hopp
+    G->>W: SYN via 8 routrar till, ny MAC vid varje hopp
     W-->>G: SYN-ACK
     G-->>K: SYN-ACK, NAT tillbaka till 10.10.70.117
     K->>W: ACK, sedan TLS och HTTP 200
@@ -203,12 +203,11 @@ $ curl -4 -s https://ifconfig.me
 
 10.10.70.117 är en privat adress (RFC 1918). Den används bara inom lokala nät
 och routas inte på internet. För att klienten ska kunna nå internet byter
-pfSense ut avsändaradressen mot sin egen publika adress, 155.4.x.x. Att det
-är pfSenses egen adress syns i pfSense under Status, Interfaces, där
-WAN-gränssnittet har samma adress som ifconfig.me visar. Det finns alltså
-ingen ytterligare NAT hos internetleverantören.
+pfSense ut avsändaradressen mot sin egen publika adress, 155.4.x.x.
 Webbservern ser därför bara pfSense och vet inte att det finns en klient
-bakom.
+bakom. Att det är pfSenses egen adress syns i pfSense under Status,
+Interfaces, där WAN-gränssnittet har samma adress som ifconfig.me visar. Det
+finns alltså ingen ytterligare NAT hos internetleverantören.
 
 På vägen ut byter pfSense avsändaren från 10.10.70.117:37402 till 155.4.x.x
 och en port som den väljer själv. Kopplingen mellan den gamla och den nya

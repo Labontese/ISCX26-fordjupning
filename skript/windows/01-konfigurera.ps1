@@ -130,7 +130,8 @@ Icacls $Projekt /grant:r "${SID_SYSTEM}:(OI)(CI)F" "${SID_ADMINS}:(OI)(CI)F" "${
 # M (Modify) betyder läsa, skriva och radera, som rwx för gruppen på Linux.
 #
 # I Gemensamt får båda grupperna rättigheter direkt. Det gick inte med chmod
-# på Linux, där en mapp bara kan ha en grupp.
+# på Linux, där en mapp bara kan ha en grupp, därför används en ACL
+# (setfacl) där.
 foreach ($mapp in 'Gemensamt', 'Ledning') {
     New-Item -ItemType Directory -Force -Path "$Projekt\$mapp" | Out-Null
     Icacls "$Projekt\$mapp" /reset

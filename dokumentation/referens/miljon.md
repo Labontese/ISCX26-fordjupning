@@ -55,6 +55,7 @@ Det här lämnas inte över, men måste finnas för att miljön ska gå att bygg
 | Lagring | `zfs-pve` för diskar, `local` för cloud-init-filer (snippets) |
 | Mall 9001 | Ubuntu 26.04 med cloud-init |
 | Mall 9010 | Windows Server 2025, sysprep:ad, med cloudbase-init, OpenSSH, virtio-drivrutiner och gästagenten |
+| Licensen på Windowsservern | Mallen är en utvärderingsversion (Evaluation) som slutar fungera 180 dagar efter installationen. Då måste mallen 9010 byggas om, eller servern aktiveras med en riktig licens |
 | pfSense | routing mellan VLAN 70 och övriga nät, DHCP på VLAN 70 och NAT ut mot internet |
 | Technitium DNS | 10.10.0.4, slår upp namn på internet |
 | iptag.service på Proxmox | sätter IP-adressen som tagg på maskinerna. Terraform ignorerar taggarna |
