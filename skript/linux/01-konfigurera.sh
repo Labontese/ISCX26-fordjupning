@@ -3,7 +3,8 @@
 # 01-konfigurera.sh: grupper, användare och mappar på Linuxservern (VM 321).
 #
 # Krav: B1 grupperna, B2 användarna, B3 mapparna, B4/B5/B7 rättigheterna.
-# Bara POSIX-behörigheter med chmod och chown, som B8 kräver. Ingen ACL.
+# chmod och chown för grundrättigheterna, och en ACL (setfacl) på Gemensamt
+# eftersom två grupper ska ha rättigheter där.
 #
 # Körs som root på servern. Skriptet tål att köras flera gånger: det som
 # redan finns skapas inte igen, men ägare och rättigheter sätts om varje gång.
@@ -30,21 +31,22 @@ for grupp in g_ledare g_personal; do
 done
 
 # ---------------------------------------------------------------- B2 -------
-# alice är med i både g_ledare och g_personal. B2 säger att hon är med i
-# g_ledare men förbjuder inte fler grupper, och med bara chmod/chown kan en
-# mapp bara ha en grupp. Hon måste vara med i g_personal för att komma åt
-# Gemensamt. En ledare räknas också som personal.
-#
 # -m skapar hemkatalogen, som behövs för ~/.ssh. Inget lösenord sätts, så
 # kontot kan bara nås med nyckel.
 for anvandare in alice bob; do
   id "$anvandare" >/dev/null 2>&1 || useradd -m -s /bin/bash "$anvandare"
 done
 
-# -a betyder lägg till. Utan -a byts alla extra grupper ut, och alice
-# skulle åka ur g_ledare.
-usermod -aG g_ledare,g_personal alice
+# alice är med i g_ledare och bob i g_personal, som uppgiften anger.
+# -a betyder lägg till. Utan -a byts alla extra grupper ut.
+usermod -aG g_ledare alice
 usermod -aG g_personal bob
+
+# En tidigare version lade alice även i g_personal. Det tas bort här, så att
+# hennes åtkomst till Gemensamt bara kommer via g_ledare.
+if id -nG alice | grep -qw g_personal; then
+  gpasswd -d alice g_personal >/dev/null
+fi
 
 # En egen nyckel per testanvändare, så att det syns vem som gjorde vad.
 # 700 på mappen och 600 på filen, annars vägrar sshd nyckeln (StrictModes).
@@ -86,6 +88,21 @@ chmod 2770 "$PROJEKT/Gemensamt"
 chown root:g_ledare "$PROJEKT/Ledning"
 chmod 2770 "$PROJEKT/Ledning"
 
+# På Linux kan en mapp bara ha en grupp i grundmodellen. Gemensamt tillhör
+# g_personal, men g_ledare ska också kunna läsa och skriva där. Därför får
+# g_ledare en egen rad med en ACL.
+#
+# -b tar först bort gamla ACL-rader, så att resultatet blir detsamma varje
+# gång. -m lägger till raden för mappen. -d -m sätter standard-ACL: raderna
+# som nya filer och mappar i Gemensamt får. Utan den skulle g_ledare inte få
+# skrivrätt på filer som bob skapar.
+setfacl -b "$PROJEKT/Gemensamt"
+setfacl -m g:g_ledare:rwx "$PROJEKT/Gemensamt"
+setfacl -d -m u::rwx,g::rwx,g:g_ledare:rwx,o::--- "$PROJEKT/Gemensamt"
+
+# Ledning ska bara ha g_ledare, så eventuella ACL-rader tas bort.
+setfacl -b "$PROJEKT/Ledning"
+
 # ---------------------------------------------------------- utskrift -------
 echo "== Grupper och användare"
 getent group g_ledare g_personal
@@ -93,3 +110,5 @@ id alice
 id bob
 echo "== Mappar"
 ls -ld "$PROJEKT" "$PROJEKT"/*
+echo "== ACL på Gemensamt"
+getfacl -p "$PROJEKT/Gemensamt"

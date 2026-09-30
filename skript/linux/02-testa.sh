@@ -52,6 +52,8 @@ ska_nekas() {
 # ---------------------------------------------------------------- B2 -------
 ska_lyckas B2 "alice är med i g_ledare" \
   som alice 'id -nG | grep -qw g_ledare'
+ska_lyckas B2 "alice är inte med i g_personal" \
+  som alice '! id -nG | grep -qw g_personal'
 ska_lyckas B2 "bob är med i g_personal" \
   som bob 'id -nG | grep -qw g_personal'
 ska_lyckas B2 "bob är inte med i g_ledare" \
@@ -66,6 +68,8 @@ ska_lyckas B3 "Gemensamt drwxrws--- root g_personal" \
   som alice "[ \"\$(stat -c '%A %U %G' $PROJEKT/Gemensamt)\" = 'drwxrws--- root g_personal' ]"
 ska_lyckas B3 "Ledning drwxrws--- root g_ledare" \
   som alice "[ \"\$(stat -c '%A %U %G' $PROJEKT/Ledning)\" = 'drwxrws--- root g_ledare' ]"
+ska_lyckas B3 "Gemensamt har ACL-rad och standard-ACL för g_ledare" \
+  som alice "getfacl -p $PROJEKT/Gemensamt | grep -qx 'group:g_ledare:rwx' && getfacl -p $PROJEKT/Gemensamt | grep -qx 'default:group:g_ledare:rwx'"
 
 # ---------------------------------------------------------------- B4 -------
 ska_lyckas B4 "alice läser och skriver i Gemensamt" \
@@ -74,15 +78,24 @@ ska_lyckas B4 "bob läser och skriver i Gemensamt" \
   som bob "echo bob > $PROJEKT/Gemensamt/b4-bob.txt && cat $PROJEKT/Gemensamt/b4-bob.txt"
 
 # ---------------------------------------------------------------- B6 -------
-# alice skapar filen och bob lägger till en rad. Det fungerar bara för att
-# två saker samverkar: setgid ger filen gruppen g_personal, och umask 0002
-# ger gruppen skrivrätt. Med umask 0022 hade bob fått FAIL trots rätt grupp.
+# alice skapar filen och bob lägger till en rad. setgid ger filen gruppen
+# g_personal, och standard-ACL:en på Gemensamt ger både g_personal och
+# g_ledare skrivrätt på nya filer. Filen tas bort först, så att den skapas
+# på nytt och får rättigheterna från standard-ACL:en.
 ska_lyckas B6 "alice skapar testfilen i Gemensamt" \
-  som alice "echo 'rad från alice' > $PROJEKT/Gemensamt/b6-testfil.txt"
+  som alice "rm -f $PROJEKT/Gemensamt/b6-testfil.txt && echo 'rad från alice' > $PROJEKT/Gemensamt/b6-testfil.txt"
 ska_lyckas B6 "bob redigerar samma fil" \
   som bob "echo 'rad från bob' >> $PROJEKT/Gemensamt/b6-testfil.txt"
 ska_lyckas B6 "filen innehåller båda raderna" \
   som alice "grep -q 'rad från alice' $PROJEKT/Gemensamt/b6-testfil.txt && grep -q 'rad från bob' $PROJEKT/Gemensamt/b6-testfil.txt"
+
+# Åt andra hållet: bob skapar och alice redigerar. alice är inte med i
+# g_personal, så det fungerar bara tack vare raden för g_ledare i
+# standard-ACL:en.
+ska_lyckas B6 "bob skapar en fil som alice redigerar" \
+  som bob "rm -f $PROJEKT/Gemensamt/b6-bob.txt && echo 'rad från bob' > $PROJEKT/Gemensamt/b6-bob.txt"
+ska_lyckas B6 "alice redigerar bobs fil" \
+  som alice "echo 'rad från alice' >> $PROJEKT/Gemensamt/b6-bob.txt"
 
 # ------------------------------------------------------------ B5, B7 -------
 ska_lyckas B5 "alice läser och skriver i Ledning" \
@@ -97,17 +110,14 @@ ska_nekas  B7 "bob kan inte läsa en fil i Ledning" \
 # --------------------------------------------------------------- B10 -------
 # Ägaren blir den som skapar filen. Gruppen blir normalt skaparens primära
 # grupp, den som står vid gid=, alltså alice. Men setgid på Gemensamt gör
-# att filen får mappens grupp, g_personal.
-#
-# umask blir 0002 i flera steg: sshd kör med 0022, login.defs saknar UMASK
-# så pam_umask behåller 0022, och USERGROUPS_ENAB yes gör gruppens bitar
-# lika med ägarens eftersom användarnamnet är samma som gruppens namn.
-ska_lyckas B10 "alice nya fil: ägare alice, grupp g_personal, -rw-rw-r--" \
-  som alice "rm -f $PROJEKT/Gemensamt/b10-ny.txt && touch $PROJEKT/Gemensamt/b10-ny.txt && [ \"\$(stat -c '%A %U %G' $PROJEKT/Gemensamt/b10-ny.txt)\" = '-rw-rw-r-- alice g_personal' ]"
+# att filen får mappens grupp, g_personal. Standard-ACL:en ger dessutom
+# filen en rad för g_ledare, och övriga får ingenting.
+ska_lyckas B10 "alice nya fil: ägare alice, grupp g_personal, rad för g_ledare" \
+  som alice "rm -f $PROJEKT/Gemensamt/b10-ny.txt && touch $PROJEKT/Gemensamt/b10-ny.txt && [ \"\$(stat -c '%A %U %G' $PROJEKT/Gemensamt/b10-ny.txt)\" = '-rw-rw---- alice g_personal' ] && getfacl -p $PROJEKT/Gemensamt/b10-ny.txt | grep -q '^group:g_ledare:rw'"
 
 echo
 echo "== Bevis för B10"
-som alice "umask; stat -c '%A %U %G %n' $PROJEKT/Gemensamt/b10-ny.txt"
+som alice "ls -l $PROJEKT/Gemensamt/b10-ny.txt; getfacl -p $PROJEKT/Gemensamt/b10-ny.txt"
 
 echo
 if [[ $FEL -eq 0 ]]; then echo "Alla test PASS"; else echo "Minst ett test FAIL"; fi

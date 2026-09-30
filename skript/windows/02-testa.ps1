@@ -55,8 +55,8 @@ $Grupp = 'function Grupper { [Security.Principal.WindowsIdentity]::GetCurrent().
 $Modify = 'function Har-Modify($s, $g) { if (-not ((Get-Acl $s).Access | Where-Object { $_.IdentityReference.Value -like "*\$g" -and $_.FileSystemRights -match "Modify" })) { throw "$g saknar Modify på $s" } }'
 
 # ---------------------------------------------------------------- B2 -------
-Ska-Lyckas B2 'alice är med i g_ledare och g_personal' alice `
-    "$Grupp; `$g = Grupper; if (-not (`$g -like '*\g_ledare') -or -not (`$g -like '*\g_personal')) { throw `$g }"
+Ska-Lyckas B2 'alice är med i g_ledare men inte i g_personal' alice `
+    "$Grupp; `$g = Grupper; if (-not (`$g -like '*\g_ledare') -or (`$g -like '*\g_personal')) { throw `$g }"
 Ska-Lyckas B2 'bob är med i g_personal men inte i g_ledare' bob `
     "$Grupp; `$g = Grupper; if (-not (`$g -like '*\g_personal') -or (`$g -like '*\g_ledare')) { throw `$g }"
 Ska-Lyckas B2 'alice är inte administratör' alice `
@@ -81,14 +81,21 @@ Ska-Lyckas B4 'bob läser och skriver i Gemensamt' bob `
 
 # ---------------------------------------------------------------- B6 -------
 # alice skapar filen och bob lägger till en rad. Det fungerar för att filen
-# ärver mappens rättigheter, där g_personal har Modify. Ingen setgid eller
-# umask behövs, som på Linux.
+# ärver mappens rättigheter, där både g_personal och g_ledare har Modify. På
+# Linux krävs setgid och standard-ACL för samma sak.
 Ska-Lyckas B6 'alice skapar testfilen i Gemensamt' alice `
     "Set-Content $Projekt\Gemensamt\b6-testfil.txt 'alice skrev'"
 Ska-Lyckas B6 'bob redigerar samma fil' bob `
     "Add-Content $Projekt\Gemensamt\b6-testfil.txt 'bob skrev'"
 Ska-Lyckas B6 'filen innehåller båda raderna' alice `
     "`$t = Get-Content $Projekt\Gemensamt\b6-testfil.txt; if (`$t -notcontains 'alice skrev' -or `$t -notcontains 'bob skrev') { throw (`$t -join '|') }"
+
+# Åt andra hållet: bob skapar och alice redigerar. alice är inte med i
+# g_personal, så det fungerar bara tack vare raden för g_ledare.
+Ska-Lyckas B6 'bob skapar en fil som alice redigerar' bob `
+    "Set-Content $Projekt\Gemensamt\b6-bob.txt 'bob skrev'"
+Ska-Lyckas B6 'alice redigerar bobs fil' alice `
+    "Add-Content $Projekt\Gemensamt\b6-bob.txt 'alice skrev'"
 
 # ------------------------------------------------------------ B5, B7 -------
 Ska-Lyckas B5 'alice läser och skriver i Ledning' alice `

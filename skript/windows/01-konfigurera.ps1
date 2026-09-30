@@ -63,11 +63,15 @@ foreach ($anvandare in 'alice', 'bob') {
 $users = (Get-LocalGroup -SID 'S-1-5-32-545').Name
 foreach ($anvandare in 'alice', 'bob') { Lagg-Till-Medlem $users $anvandare }
 
-# Samma struktur som på Linux: alice är med i båda grupperna, bob bara i
-# g_personal.
+# alice är med i g_ledare och bob i g_personal, som uppgiften anger.
 Lagg-Till-Medlem 'g_ledare'   'alice'
-Lagg-Till-Medlem 'g_personal' 'alice'
 Lagg-Till-Medlem 'g_personal' 'bob'
+
+# En tidigare version lade alice även i g_personal. Det tas bort här, så att
+# hennes åtkomst till Gemensamt bara kommer via g_ledare.
+if (Get-LocalGroupMember -Name 'g_personal' | Where-Object { $_.Name -like '*\alice' }) {
+    Remove-LocalGroupMember -Name 'g_personal' -Member 'alice'
+}
 
 # Mallens sshd_config har AllowGroups administrators "openssh users". Utan
 # den här gruppen stoppas alice och bob innan nyckeln ens prövas.
