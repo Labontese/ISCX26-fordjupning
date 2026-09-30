@@ -1,0 +1,9 @@
+version: 2
+ethernets:
+  # Kortet pekas ut med namn, inte med MAC-adress. cloud-init kontrollerar
+  # MAC-adresser så tidigt i uppstarten att det virtuella kortet inte hunnit
+  # dyka upp, och då skrivs ingen nätverkskonfiguration alls.
+  #
+  # Driftnätet, VLAN 70. Adress, gateway och DNS kommer från DHCP.
+  ens18:
+    dhcp4: true

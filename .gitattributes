@@ -1,0 +1,3 @@
+# Skalskript måste ha LF, annars tolkar bash \r som en del av kommandot.
+*.sh text eol=lf
+*.pub text eol=lf
